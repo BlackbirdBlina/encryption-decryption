@@ -8,3 +8,11 @@ export const ALPHABET_MAP: Record<number, string> = {
     43: '!',
     44: '?'
 }
+
+export const ALPHABET_REVERSE_MAP: Record<string, number> = Object.entries(ALPHABET_MAP).reduce(
+    (acc, [code, char]) => {
+        acc[char] = Number(code);
+        return acc;
+    },
+    {} as Record<string, number>
+);

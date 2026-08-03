@@ -1,25 +1,37 @@
 import { type PrimeFactors } from '../interfaces/primeFactors.interface';
 
-export function findPrimeFactors(numberN: number): PrimeFactors[] {
-    const primeFactors: PrimeFactors[] = [];
+export function findPrimeFactors(numberN: number): PrimeFactors {
+    const factors: number[] = [];
+    let tempN = numberN;
 
-    while (numberN % 2 === 0) {
-        primeFactors.push({ primeP: 2, primeQ: 2 });
-        numberN = Math.floor(numberN / 2);
+    while (tempN % 2 === 0) {
+        factors.push(2);
+        tempN = Math.floor(tempN / 2);
     }
 
     let divider = 3;
-    while (divider * divider <= numberN) {
-        while (numberN % divider === 0) {
-            primeFactors.push({ primeP: divider, primeQ: divider });
-            numberN = Math.floor(numberN / divider);
+    while (divider * divider <= tempN) {
+        while (tempN % divider === 0) {
+            factors.push(divider);
+            tempN = Math.floor(tempN / divider);
         }
         divider += 2;
     }
 
-    if (numberN > 2) {
-        primeFactors.push({ primeP: numberN, primeQ: numberN });
+    if (tempN > 2) {
+        factors.push(tempN);
     }
 
-    return primeFactors;
+    if (factors.length !== 2) {
+        throw new Error(
+            `O valor n=${numberN} é inválido para RSA. Fatores encontrados: ${factors.join(', ')}`
+        );
+    }
+
+    const p = factors[0];
+    const q = factors[1];
+
+    console.log(`Fatores primos encontrados para n=${numberN}: p=${p}, q=${q}`);
+
+    return { primeP: p, primeQ: q };
 }

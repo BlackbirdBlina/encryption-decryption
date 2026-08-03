@@ -1,4 +1,5 @@
 export interface CryptoKeys {
-  modularInverseD: number;
+  modularInverseD?: number;
   keyN: number;
+  publicKeyE?: number;
 }

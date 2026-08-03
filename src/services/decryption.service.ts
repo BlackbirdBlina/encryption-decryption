@@ -9,10 +9,10 @@ export class DecryptionService {
         return decriptedBlock.toString();
     }
 
-    public static decryptMessage(encryptedMessage: string, modularInverseD: number, modulus: number): string {
+    public static decryptMessage(encryptedMessage: string, modularInverseD: number, modulus: number, ): string {
         const codedChar: number[] = [];
         const cleanMessage = encryptedMessage.replace(/\s+/g, '');
-        
+
         const blocks = cleanMessage.split("-");
         let decryptedBlocks = "";
         let decryptedMessage = "";
@@ -29,6 +29,7 @@ export class DecryptionService {
         }
 
         for (const charCode of codedChar) {
+            console.log(`Char Code: ${charCode}`);
             decryptedMessage += ALPHABET_MAP[charCode] || '?';
         }
 

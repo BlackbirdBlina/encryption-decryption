@@ -1,3 +1,4 @@
 export function totientFunction(p: number, q: number): number {
-    return (p - 1) * (q - 1);
+    const phiN = (p - 1) * (q - 1);
+    return phiN;
 }

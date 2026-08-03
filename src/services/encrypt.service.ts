@@ -1,18 +1,52 @@
-// ToDo!!!!
-// import { totientFunction } from "./totientFunction.service";
-// import { findPrimeFactors } from "./findPrimeFactors.service";
+import { ALPHABET_REVERSE_MAP } from "../constants/alphabet.constant";
+import { bitwiseDecomposition } from "./bitwiseDecomposition.service";
+import { totientFunction } from "./totientFunction.service";
+import { findPrimeFactors } from "./findPrimeFactors.service";
+import { extendedGCD } from "./extendedGCD.service";
+import { gcd } from "./gcd.service";
 
-// export class Encrypt {
-//     private static modularInverse(chaveE: number, phiN: number): number[] {
-//         const primesFound = findPrimeFactors(chaveE);
+export class EncryptService {
+    public static calculateModularInverseKeyD(publicKeyE: number, modulusN: number): number {
+        const primesFound = findPrimeFactors(modulusN);
 
-//         if (primesFound.length !== 2) {
-//             throw new Error("Número de fatores primos inválido");
-//         }
+        const p = primesFound.primeP;
+        const q = primesFound.primeQ;
 
-//         const p = primesFound[0];
-//         const q = primesFound[1];
+        if (!p || !q) {
+            throw new Error(`Não foi possível extrair p e q. p=${p}, q=${q}`);
+        }
+        const phiN = totientFunction(p, q);
 
-//         const phiN = totientFunction(p.primeP, q.primeQ);
+        if (gcd(publicKeyE, phiN) !== 1) {
+            throw new Error("A chave E e φ(n) não são coprimos. Escolha outro valor para E.");
+        }
 
-// }
+        let keyD = extendedGCD(publicKeyE, phiN);
+
+        if (keyD < 0) {
+            keyD = (keyD % phiN + phiN) % phiN;
+        }
+        
+        return keyD;
+    }
+
+    private static findEncryptedBlock(messageBlock: number, publicKeyE: number, keyN: number): string {
+        const encryptedBlock = bitwiseDecomposition(messageBlock, publicKeyE, keyN);
+        return encryptedBlock.toString();
+    }
+
+    public static encryptMessage(plainText: string, publicKeyE: number, modulusN: number): string {
+        const cleanText = plainText.toUpperCase().replace(/\s+/g, '');
+        const encryptedBlocks: string[] = [];
+
+        for (const char of cleanText) {
+            const charCode = ALPHABET_REVERSE_MAP[char];
+            if (charCode !== undefined) {
+                const encryptedVal = EncryptService.findEncryptedBlock(charCode, publicKeyE, modulusN);
+                encryptedBlocks.push(encryptedVal);
+            }
+        }
+
+        return encryptedBlocks.join("-");
+    }
+}
