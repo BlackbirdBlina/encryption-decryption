@@ -1,25 +1,34 @@
 import { ALPHABET_MAP } from "../constants/alphabet.constant";
+import type { DecryptionResult } from "../interfaces/decryptionResult.interface";
 import { bitwiseDecomposition } from "./bitwiseDecomposition.service";
 
 export class DecryptionService {
-    private static findDecryptedBlocks(blockB: number, modularInverseD: number, keyN: number): string {
+    private static findDecryptedBlocks(blockB: number, modularInverseD: number, keyN: number): { blockStr: string; logs: string[] }{
 
-        let decriptedBlock = bitwiseDecomposition(blockB, modularInverseD, keyN);
+        const { result, logs } = bitwiseDecomposition(blockB, modularInverseD, keyN);
 
-        return decriptedBlock.toString();
+        return {
+            blockStr: result.toString(),
+            logs
+        };
     }
 
-    public static decryptMessage(encryptedMessage: string, modularInverseD: number, modulus: number, ): string {
+    public static decryptMessage(encryptedMessage: string, modularInverseD: number, modulus: number, ): DecryptionResult {
         const codedChar: number[] = [];
         const cleanMessage = encryptedMessage.replace(/\s+/g, '');
 
+        const reportLogs: string[] = [];
         const blocks = cleanMessage.split("-");
         let decryptedBlocks = "";
         let decryptedMessage = "";
 
         for (const block of blocks) {
-            let resultBlock = DecryptionService.findDecryptedBlocks(parseInt(block), modularInverseD, modulus);
-            decryptedBlocks += resultBlock;
+            if (!block) continue;
+
+            const { blockStr, logs } = DecryptionService.findDecryptedBlocks(parseInt(block, 10), modularInverseD, modulus);
+            
+            decryptedBlocks += blockStr;
+            reportLogs.push(...logs);
         }
 
         for (let i = 0; i < decryptedBlocks.length; i += 2) {
@@ -28,11 +37,22 @@ export class DecryptionService {
             codedChar.push(resultBlock);
         }
 
+        const charMappings: string[] = [];
+
         for (const charCode of codedChar) {
-            console.log(`Char Code: ${charCode}`);
-            decryptedMessage += ALPHABET_MAP[charCode] || '?';
+            const char = ALPHABET_MAP[charCode] || '?';
+
+            charMappings.push(`${charCode}: "${char}"`);
+
+            decryptedMessage += char;
         }
 
-        return decryptedMessage;
+        const formattedCharSentence = charMappings.join(', ');
+        reportLogs.push(formattedCharSentence);
+
+        return {
+            decryptedMessage,
+            reportLogs
+        };
     }
 }

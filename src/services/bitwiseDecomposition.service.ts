@@ -1,30 +1,51 @@
-export function bitwiseDecomposition(baseB: number, exponent: number, modulus: number): number {
+import type { BitwiseResult } from "../interfaces/bitwiseResult.interface";
+
+export function bitwiseDecomposition(baseB: number, exponent: number, modulus: number): BitwiseResult {
     if (exponent <= 0) {
         throw new Error("O módulo 'n' deve ser maior que 0.");
     }
 
+    const logs: string[] = [];
+
     const bits = exponent.toString(2);
     const sizeBits = bits.length;
     const validRemains: bigint[] = [];
-    console.log(`Exponent: ${exponent}, Bits: ${bits}`);
+    
+    const logExponent = `Expoente: ${exponent}, Bits: ${bits}`;
+    logs.push(logExponent);
+
     let currentExponent = BigInt(baseB % modulus);
-    console.log(`Initial Base: ${baseB}, Modulus: ${modulus}`);
-    console.log(`Initial Current Exponent: ${currentExponent}`);
+
+    const logBase = `Base inicial: ${baseB}, Módulo: ${modulus}`;
+    logs.push(logBase);
+
+    const logInitial = `Exponente Atual Inicial: ${currentExponent}`;
+    logs.push(logInitial);
+
     for (let i = 0; i < sizeBits; i++) {
         const bit = bits[sizeBits - 1 - i]; // Acessa os bits da direita para a esquerda
         
         if (bit === '1') {
-            console.log(`i: ${i}, Bit: ${bit}, Current Exponent: ${currentExponent}`);
+            const logBit1 = `i: ${i}, Bit: ${bit}, Expoente atual: ${currentExponent}`;
+            logs.push(logBit1);
             validRemains.unshift(currentExponent);
         }
-        console.log(`i: ${i}, Bit: ${bit}, Current Exponent before squaring: ${currentExponent}`);
+        const logBeforeSquaring = `i: ${i}, Bit: ${bit}, Atual expoente antes da raíz quadrada: ${currentExponent}`;
+        logs.push(logBeforeSquaring);
+        
         const squaring = (currentExponent * currentExponent);
-        console.log(`i: ${i}, Bit: ${bit}, Squaring: ${squaring}`);
+
+        const logSquaring = `i: ${i}, Bit: ${bit}, Raíz quadrada: ${squaring}`;
+        logs.push(logSquaring);
+
         currentExponent = squaring % BigInt(modulus); // Eleva ao quadrado para a próxima iteração
     }
 
     if (validRemains.length === 0) {
-        return 0;
+        return {
+            result: 0,
+            logs
+        };
     }
 
     validRemains.reverse();
@@ -32,9 +53,14 @@ export function bitwiseDecomposition(baseB: number, exponent: number, modulus: n
         return (accumulator * currentValue) % BigInt(modulus);
     }, 1n);
 
-    console.log(`Valid Remains: ${validRemains.map(v => v.toString()).join(', ')}`);
+    const logValidRemains = `Restos válidos: ${validRemains.map(v => v.toString()).join(', ')}`;
+    logs.push(logValidRemains);
 
-    console.log(result);
-
-    return Number(result);
+    const logResult = `Resultado: ${result}`;
+    logs.push(logResult);
+    
+    return {
+        result: Number(result),
+        logs
+    };
 }

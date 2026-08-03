@@ -11,6 +11,8 @@ interface FileDecryptorProps {
 export const FileDecryptor: React.FC<FileDecryptorProps> = ({ keys, onResetKeys }) => {
     const [inputText, setInputText] = useState('');  
     const [outputMessage, setOutputMessage] = useState('');
+    const [reportLogs, setReportLogs] = useState<string[]>([]);
+    const [showReport, setShowReport] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
 
     const isPrivateKeyAvailable = keys.modularInverseD !== undefined;
@@ -19,27 +21,30 @@ export const FileDecryptor: React.FC<FileDecryptorProps> = ({ keys, onResetKeys 
     const handleProcess = () => {
         if (!inputText.trim()) return;
         setErrorMessage('');
+        setShowReport(false);
 
         try {
             if (isPrivateKeyAvailable && keys.modularInverseD !== undefined) {
-                const decrypted = DecryptionService.decryptMessage(
+                const { decryptedMessage, reportLogs } = DecryptionService.decryptMessage(
                     inputText, 
                     keys.modularInverseD,
                     keys.keyN
                 );
-                setOutputMessage(decrypted);
+                setOutputMessage(decryptedMessage);
+                setReportLogs(reportLogs);
                 return;
             }
 
             if (isPublicKeyAvailable && keys.publicKeyE !== undefined) {
                 const calculatedD = EncryptService.calculateModularInverseKeyD(keys.publicKeyE, keys.keyN);
                 
-                const decrypted = DecryptionService.decryptMessage(
+                const { decryptedMessage, reportLogs } = DecryptionService.decryptMessage(
                     inputText, 
                     calculatedD,
                     keys.keyN
                 );
-                setOutputMessage(decrypted);
+                setOutputMessage(decryptedMessage);
+                setReportLogs(reportLogs);
                 return;
             }
 
@@ -48,6 +53,7 @@ export const FileDecryptor: React.FC<FileDecryptorProps> = ({ keys, onResetKeys 
             console.error("Erro no processamento:", error);
             setErrorMessage(error.message || "Erro ao processar mensagem.");
             setOutputMessage('');
+            setReportLogs([]);
         }
     };
 
@@ -67,19 +73,45 @@ export const FileDecryptor: React.FC<FileDecryptorProps> = ({ keys, onResetKeys 
             </label>
             <textarea
                 rows={4}
-                style={{ width: '100%', padding: '8px', background: '#222', color: '#fff', border: '1px solid #444', fontFamily: 'monospace' }}
+                style={{ 
+                    width: '100%', 
+                    padding: '8px', 
+                    background: '#222', 
+                    color: '#fff', 
+                    border: '1px solid #444', 
+                    fontFamily: 'monospace' }}
                 placeholder="Ex: 630-980-1079-838..."
                 value={inputText}
-                onChange={(e) => setInputText(e.target.value)}
-            />
+                onChange={(e) => setInputText(e.target.value)}/>
       </div>
 
       <button 
           onClick={handleProcess} 
-          style={{ padding: '10px 20px', background: '#4af30b', color: '#000', border: 'none', cursor: 'pointer', fontWeight: 'bold', marginRight: '10px' }}
-      >
-          Processar Fluxo Matemático
+          style={{ 
+            padding: '10px 20px', 
+            background: '#4af30b', 
+            color: '#000', 
+            border: 'none', 
+            cursor: 'pointer', 
+            fontWeight: 'bold', 
+            marginRight: '10px' }}>
+          Processar Fluxo
       </button>
+
+        {reportLogs.length > 0 && (
+            <button 
+                onClick={() => setShowReport(!showReport)} 
+                style={{ 
+                    padding: '10px 20px', 
+                    background: '#ff0055', 
+                    color: '#fff', 
+                    border: 'none', 
+                    cursor: 'pointer', 
+                    fontWeight: 'bold',
+                    marginRight: '10px' }}>
+                {showReport ? "Ocultar Relatório" : "Visualizar Relatório"}
+            </button>
+        )}
 
       <button 
         onClick={onResetKeys} 
@@ -103,6 +135,32 @@ export const FileDecryptor: React.FC<FileDecryptorProps> = ({ keys, onResetKeys 
                 <div style={{ background: '#151515', padding: '15px', borderRadius: '4px', borderLeft: '4px solid #4af30b', letterSpacing: '1px', fontSize: '18px', fontFamily: 'monospace' }}>
                     {outputMessage}
                 </div>
+            </div>
+        )}
+
+        {showReport && reportLogs.length > 0 && (
+            <div style={{ 
+                marginTop: '25px', 
+                borderTop: '1px solid #333', 
+                paddingTop: '15px' }}>
+                <h4 style={{ color: '#ff0055' }}>
+                    Relatório Detalhado de Cálculo:
+                </h4>
+                <pre style={{ 
+                    background: '#121212', 
+                    padding: '15px', 
+                    borderRadius: '6px', 
+                    border: '1px solid #333',
+                    color: '#00ff66', 
+                    fontFamily: 'monospace', 
+                    fontSize: '13px', 
+                    maxHeight: '350px', 
+                    overflowY: 'auto',
+                    whiteSpace: 'pre-wrap',
+                    wordBreak: 'break-all'
+                }}>
+                    {reportLogs.join('\n')}
+                </pre>
             </div>
         )}
     </div>
